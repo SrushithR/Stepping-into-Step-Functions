@@ -1,0 +1,52 @@
+{
+    "Comment": "This state machine returns an employee entry from DynamoDB",
+    "StartAt": "Read From DynamoDB",
+    "States": {
+        "Read From DynamoDB": {
+            "Type": "Task",
+            "Resource": "arn:<Partition>:states:::dynamodb:getItem",
+            "Parameters": {
+                "TableName": "<DDB_TABLE_NAME>",
+                "Key": {
+                    "UserId": {
+                        "S.$": "$.employee"
+                    }
+                }
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "DynamoDB.AmazonDynamoDBException"
+                    ],
+                    "IntervalSeconds": 3,
+                    "MaxAttempts": 2,
+                    "BackoffRate": 1.5
+                }
+            ],
+            "Next": "Is Get Successful"
+        },
+        "Is Get Successful": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.Item",
+                    "IsPresent": true,
+                    "Next": "Succeed Execution"
+                }
+            ],
+            "Default": "Fail Execution"
+        },
+        "Succeed Execution": {
+            "Type": "Pass",
+            "Parameters": {
+                "user.$": "$.Item.EmployeeId.S",
+                "jobTitle.$": "$.Item.JobTitle.S"
+            },
+            "End": true
+        },
+        "Fail Execution": {
+            "Type": "Fail",
+            "Error": "EmployeeDoesNotExist"
+        }
+    }
+}
