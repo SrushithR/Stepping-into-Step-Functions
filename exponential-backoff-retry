@@ -1,52 +1,50 @@
 {
-    "Comment": "This state machine returns an employee entry from DynamoDB",
-    "StartAt": "Read From DynamoDB",
-    "States": {
-        "Read From DynamoDB": {
-            "Type": "Task",
-            "Resource": "arn:<Partition>:states:::dynamodb:getItem",
-            "Parameters": {
-                "TableName": "<DDB_TABLE_NAME>",
-                "Key": {
-                    "UserId": {
-                        "S.$": "$.employee"
-                    }
-                }
-            },
-            "Retry": [
-                {
-                    "ErrorEquals": [
-                        "DynamoDB.AmazonDynamoDBException"
-                    ],
-                    "IntervalSeconds": 3,
-                    "MaxAttempts": 2,
-                    "BackoffRate": 1.5
-                }
-            ],
-            "Next": "Is Get Successful"
-        },
-        "Is Get Successful": {
-            "Type": "Choice",
-            "Choices": [
-                {
-                    "Variable": "$.Item",
-                    "IsPresent": true,
-                    "Next": "Succeed Execution"
-                }
-            ],
-            "Default": "Fail Execution"
-        },
-        "Succeed Execution": {
-            "Type": "Pass",
-            "Parameters": {
-                "user.$": "$.Item.EmployeeId.S",
-                "jobTitle.$": "$.Item.JobTitle.S"
-            },
-            "End": true
-        },
-        "Fail Execution": {
-            "Type": "Fail",
-            "Error": "EmployeeDoesNotExist"
+  "Comment": "This state machine returns an employee entry from DynamoDB",
+  "StartAt": "Read From DynamoDB",
+  "States": {
+    "Read From DynamoDB": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Parameters": {
+        "TableName": "StepFunctionsSample-SynchronousExpressWorkflowb8d3fd72-bdc3-4ebc-8271-eb151cbfa29a-DynamoDBTable-OSHUABZDUPUP",
+        "Key": {
+          "EmployeeId": {"S.$": "$.employee"}
         }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "DynamoDB.AmazonDynamoDBException"
+          ],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 1.5
+        }
+      ],
+      "Next": "Is Get Successful"
+    },
+    "Is Get Successful": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.Item",
+          "IsPresent": true,
+          "Next": "Succeed Execution"
+        }
+      ],
+      "Default": "Fail Execution"
+    },
+    "Succeed Execution": {
+      "Type": "Pass",
+      "Parameters" : {
+        "employee.$": "$.Item.EmployeeId.S",
+        "jobTitle.$": "$.Item.JobTitle.S"
+      },
+      "End": true
+    },
+    "Fail Execution": {
+      "Type": "Fail",
+      "Error": "EmployeeDoesNotExist"
     }
+  }
 }
